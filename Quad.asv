@@ -214,13 +214,12 @@ classdef Quad
       end
       
       % u : four rotor speeds
-      uTotal = quad.K(1,:) * u; %F
+      uTotal = quad.K(1,:) * u;
       uMoments = quad.K(2:end,:) * u;
       
       [omega, theta, xVel, xPos] = quad.parse_state(x);
       
-      % Rotation from body to inertial frame : Sens de la multiplication
-      % ????
+      % Rotation from body to inertial frame
       roll = theta(1); pitch = theta(2); yaw = theta(3);
       R = [1 0 0;0 cos(roll) -sin(roll);0 sin(roll) cos(roll)];
       R = R*[cos(pitch) 0 sin(pitch); 0 1 0; -sin(pitch) 0 cos(pitch)];
