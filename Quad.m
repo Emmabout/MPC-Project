@@ -65,8 +65,8 @@ classdef Quad
       else
         ctrl = ctrl_x;
       end
-        ref = @(t,x) MPC_ref(t, Tf);
-
+      ref = @(t,x) quad.MPC_ref(t, Tf);
+      
       if nargin < 10, use_linear = false; end
       
       fprintf('Simulating...\n');
@@ -102,7 +102,7 @@ classdef Quad
     %
     % Trace out an MPC in ref_time seconds
     %
-    function ref = MPC_ref(t, ref_time)
+    function ref = MPC_ref(quad, t, ref_time)
       
       coords = [0 0; 0 2; 1 1; 2 2; 2 0; ... % 'M'
         3 0; 3 2; 4 2; 4 1; 3 1; 3 0; ... % 'P'
@@ -214,13 +214,12 @@ classdef Quad
       end
       
       % u : four rotor speeds
-      uTotal = quad.K(1,:) * u; %F
+      uTotal = quad.K(1,:) * u;
       uMoments = quad.K(2:end,:) * u;
       
       [omega, theta, xVel, xPos] = quad.parse_state(x);
       
-      % Rotation from body to inertial frame : Sens de la multiplication
-      % ????
+      % Rotation from body to interial frame
       roll = theta(1); pitch = theta(2); yaw = theta(3);
       R = [1 0 0;0 cos(roll) -sin(roll);0 sin(roll) cos(roll)];
       R = R*[cos(pitch) 0 sin(pitch); 0 1 0; -sin(pitch) 0 cos(pitch)];
@@ -320,12 +319,19 @@ classdef Quad
       yawI = sys_yaw.UserData.states;
       yawT = sys_yaw.UserData.T;
       
-      ctrl = @(x, ref) quad.us + ...
-        xT'*ctrl_x(x(xI), ref(1)) + ...
-        yT'*ctrl_y(x(yI), ref(2)) + ...
-        zT'*ctrl_z(x(zI), ref(3)) + ...
-        yawT'*ctrl_yaw(x(yawI), ref(4));
-      
+      if isa(ctrl_x, 'MPC_Control')
+        ctrl = @(x, ref) quad.us + ...
+          xT'*ctrl_x.get_u(x(xI), ref(1)) + ...
+          yT'*ctrl_y.get_u(x(yI), ref(2)) + ...
+          zT'*ctrl_z.get_u(x(zI), ref(3)) + ...
+          yawT'*ctrl_yaw.get_u(x(yawI), ref(4));
+      else
+        ctrl = @(x, ref) quad.us + ...
+          xT'*ctrl_x(x(xI), ref(1)) + ...
+          yT'*ctrl_y(x(yI), ref(2)) + ...
+          zT'*ctrl_z(x(zI), ref(3)) + ...
+          yawT'*ctrl_yaw(x(yawI), ref(4));
+      end
     end
     
     %
@@ -354,7 +360,7 @@ classdef Quad
       dat.z.lb = double(lb(3)); dat.z.ub = double(ub(3));
       dat.yaw.lb = double(lb(4)); dat.yaw.ub = double(ub(4));
     end
-
+    
     %
     % Plot the trajectory of the quad
     %
@@ -365,7 +371,7 @@ classdef Quad
         sim.t = sim.x;
         sim.x = sim.y;
         
-        for i = 1:length(sim.x)
+        for i = 1:length(sim.t)
           [s(i).omega, s(i).theta, s(i).vel, s(i).pos] = quad.parse_state(sim.x(:,i));
           s(i).t = sim.t(i);
           s(i).u = Nplots;
@@ -374,7 +380,7 @@ classdef Quad
         sim = s;
         Nplots = 10;
       end
-
+      
       figure(1); clf; hold on;
       subplot(2,2,1);
       hold on; grid on
