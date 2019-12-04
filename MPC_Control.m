@@ -21,18 +21,37 @@ classdef MPC_Control
     % Compute the MPC controller
     function u = get_u(mpc, x, ref)
       % Compute the target
-      if nargin == 3
-        [target, isfeasible] = mpc.target_opt(ref);
-        assert(isfeasible==0, 'Infeasible in target computationn');
-        [ref_x, ref_u] = deal(target{:});
-      else
+      if nargin < 3
         ref_x = zeros(size(mpc.A,1),1);
         ref_u = 0;
+      else
+        if length(struct(mpc.target_opt).diminOrig) == 2
+          if length(x) == 3
+            d_est = x(end);
+          else
+            d_est = 0;
+          end
+          [target, isfeasible] = mpc.target_opt(ref, d_est);
+        else
+          [target, isfeasible] = mpc.target_opt(ref);
+        end
+        [ref_x, ref_u] = deal(target{:});
+        assert(isfeasible==0, 'isfeasible in target computationn');
       end
       
-      % Comptue the control action
-      [u, isfeasible] = mpc.ctrl_opt({x, ref_x, ref_u});
-      assert(isfeasible==0, 'Infeasible in control computationn');
+      % Compute the control action
+      if length(struct(mpc.ctrl_opt).diminOrig) == 4
+        if length(x) == 3
+          d_est = x(end);
+          x = x(1:end-1);
+        else
+          d_est = 0;
+        end
+        [u, isfeasible] = mpc.ctrl_opt({x, ref_x, ref_u, d_est});        
+      else
+        [u, isfeasible] = mpc.ctrl_opt({x, ref_x, ref_u});
+      end
+      assert(isfeasible==0, 'isfeasible in control computationn');
     end
   end
   

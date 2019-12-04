@@ -54,20 +54,22 @@ classdef Quad
     %
     % Simulate the nonlinear quadcopter to track an MPC reference
     %
-    function sim = sim(quad, ctrl_x, ctrl_y, ctrl_z, ctrl_yaw, use_linear)
+    function sim = sim(quad, ctrl_x, ctrl_y, ctrl_z, ctrl_yaw, input_bias)
       sim.t = 0;
       sim.x = zeros(12,1);
+      sim.z_hat = zeros(3,1); % Offset free for z-dimension
       Ts = quad.Ts;
       Tf = 40;
       
-      if nargin >= 5
+      if nargin >= 3
         ctrl = quad.merge_controllers(ctrl_x, ctrl_y, ctrl_z, ctrl_yaw);
       else
         ctrl = ctrl_x;
+        ctrl_z.L = [];
       end
       ref = @(t,x) quad.MPC_ref(t, Tf);
       
-      if nargin < 10, use_linear = false; end
+      if nargin < 6, input_bias = 0; end
       
       fprintf('Simulating...\n');
       tic
@@ -80,17 +82,28 @@ classdef Quad
         % Compute reference
         sim(i).ref = ref(sim(i).t, sim(i).x);
         
-        % Compute control law
-        sim(i).u = ctrl(sim(i).x, sim(i).ref);
-        
         % Simulate forward in time
         sim(i+1).t = sim(i).t + Ts;
         
-        if use_linear
-          sim(i+1).x = quad.sys_discrete.A * sim(i).x + quad.sys_discrete.B * (sim(i).u - quad.us);
+        % Compute control law
+        if ~isempty(ctrl_z.L) % Doing offset free in the z-dimension
+          
+          % Compute control input for z-dimension
+          z_input = ctrl_z.get_u(sim(i).z_hat, sim(i).ref(3));
+          
+          % Run the estimator
+          sim(i+1).z_hat = ctrl_z.A_bar * sim(i).z_hat + ...
+            ctrl_z.B_bar * z_input ...
+            + ctrl_z.L * (ctrl_z.C_bar * sim(i).z_hat - sim(i).x(quad.ind.pos(3)));
+          
+          % Compute control input
+          sim(i).u = ctrl(sim(i).x, sim(i).ref, sim(i).z_hat);
+          
         else
-          sim(i+1).x = quad.step(sim(i).x, sim(i).u, Ts);
+          sim(i).u = ctrl(sim(i).x, sim(i).ref);
         end
+        
+        sim(i+1).x = quad.step(sim(i).x, sim(i).u + input_bias, Ts);
         
         [sim(i).omega, sim(i).theta, sim(i).vel, sim(i).pos] = ...
           quad.parse_state(sim(i).x);
@@ -319,18 +332,20 @@ classdef Quad
       yawI = sys_yaw.UserData.states;
       yawT = sys_yaw.UserData.T;
       
-      if isa(ctrl_x, 'MPC_Control')
+      if ~isempty(ctrl_z.L) % Provide offset-free information in z
+        fprintf('===> Detected offset-free z-controller\n');
+        ctrl = @(x, ref, z_hat) quad.us + ...
+          xT'*ctrl_x.get_u(x(xI), ref(1)) + ...
+          yT'*ctrl_y.get_u(x(yI), ref(2)) + ...
+          zT'*ctrl_z.get_u(z_hat, ref(3)) + ...
+          yawT'*ctrl_yaw.get_u(x(yawI), ref(4));
+      else % Not offset free
+        fprintf('===> z-controller is not offset free\n');
         ctrl = @(x, ref) quad.us + ...
           xT'*ctrl_x.get_u(x(xI), ref(1)) + ...
           yT'*ctrl_y.get_u(x(yI), ref(2)) + ...
-          zT'*ctrl_z.get_u(x(zI), ref(3)) + ...
+          zT'*ctrl_z.get_u([x(zI);0], ref(3)) + ...
           yawT'*ctrl_yaw.get_u(x(yawI), ref(4));
-      else
-        ctrl = @(x, ref) quad.us + ...
-          xT'*ctrl_x(x(xI), ref(1)) + ...
-          yT'*ctrl_y(x(yI), ref(2)) + ...
-          zT'*ctrl_z(x(zI), ref(3)) + ...
-          yawT'*ctrl_yaw(x(yawI), ref(4));
       end
     end
     
@@ -402,8 +417,7 @@ classdef Quad
       %       plot([0,max([sim.t])], [-0.25,-0.25], 'k-', 'linewidth', 2);
       %       plot([0,max([sim.t])], [ 0.25, 0.25], 'k-', 'linewidth', 2);
       title('Linear velocity')
-      legend('Velocity x', 'Velocity y', 'Velocity z', ...
-        'Reference x', 'Reference y', 'Reference z');
+      legend('Velocity x', 'Velocity y', 'Velocity z');
       
       subplot(2,2,4);
       hold on; grid on
@@ -412,8 +426,12 @@ classdef Quad
         plot([sim.t], [sim.ref], 'k-');
       end
       title('Position')
-      legend('x', 'y', 'z', ...
-        'Reference x', 'Reference y', 'Reference z');
+      if isfield(sim, 'ref')
+        legend('x', 'y', 'z', ...
+          'Reference x', 'Reference y', 'Reference z');
+      else
+        legend('x', 'y', 'z');
+      end
       
       figure(2);
       clf; view(3);
