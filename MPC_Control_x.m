@@ -20,7 +20,7 @@ classdef MPC_Control_x < MPC_Control
             us = sdpvar(m, 1);
             
             % SET THE HORIZON HERE
-            N = 10;
+            N = 30;
             
             % Predicted state and input trajectories
             x = sdpvar(n, N);
@@ -38,8 +38,8 @@ classdef MPC_Control_x < MPC_Control
             obj = 0;
             
             % Tuning parameters
-            Q = 10 * eye(n);
-            R = eye(m);
+            Q = diag([10 10 10 100]);
+            R = 1;
             
             % Constraints
             F = [0 1 0 0; 0 -1 0 0];
@@ -65,11 +65,11 @@ classdef MPC_Control_x < MPC_Control
                 end
             end
             [Ff,ff] = double(Xf);
-            Xf.projection([1 2]).plot();
-            figure
-            Xf.projection([3 4]).plot();
-            figure
-            Xf.projection([2 4]).plot();
+%             Xf.projection([1 2]).plot();
+%             figure
+%             Xf.projection([2 3]).plot();
+%             figure
+%             Xf.projection([3 4]).plot();
             
             for i = 1:N-1
                 con = con + (x(:,i+1) == mpc.A*x(:,i) + mpc.B*u(:,i));  % System dynamics
@@ -77,7 +77,7 @@ classdef MPC_Control_x < MPC_Control
                 con = [con, F*x(:,i)<= f];                       % State constraints
                 obj = obj + x(:,i)'*Q*x(:,i) + u(:,i)'*R*u(:,i);    % Cost function
             end
-%             con = con + (Ff*x(:,N) <= ff);
+            con = con + (Ff*x(:,N) <= ff);
             obj = obj + x(:,N)'*Q*x(:,N);
             
             % YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE
