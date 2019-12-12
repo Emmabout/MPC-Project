@@ -52,7 +52,7 @@ classdef MPC_Control_z < MPC_Control
             obj = 0;
                         
             % Tuning parameters
-            Q = 10 * eye(n);
+            Q = diag([10 100]);
             R = eye(m);
             
             % Constraints

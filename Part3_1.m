@@ -12,29 +12,51 @@ mpc_z = MPC_Control_z(sys_z, Ts);
 mpc_yaw = MPC_Control_yaw(sys_yaw, Ts);
 
 %% Simulate the systems
-[x, t_x, x_x] = lsim_mpc(sys_x, mpc_x, [0 0 0 2], 8, Ts, 10);
-[y, t_y] = lsim_mpc(sys_y, mpc_y, [0 0 0 2], 8, Ts, 10);
-[z, t_z] = lsim_mpc(sys_z, mpc_z, [0 2], 8, Ts, 10);
-[yaw, t_yaw] = lsim_mpc(sys_yaw, mpc_yaw, [0 pi/4], 8, Ts, 10);
+[x, t_x, x_x] = lsim_mpc(sys_x, mpc_x, [0 0 0 2], 10, Ts, 10);
+[y, t_y, x_y] = lsim_mpc(sys_y, mpc_y, [0 0 0 2], 10, Ts, 10);
+[z, t_z, x_z] = lsim_mpc(sys_z, mpc_z, [0 2], 10, Ts, 10);
+[yaw, t_yaw, x_yaw] = lsim_mpc(sys_yaw, mpc_yaw, [0 pi/4], 10, Ts, 10);
 
 %% Plot
+% Sys X
 figure
-subplot(2, 1, 1)
-hold on
-line([t_x(1) t_x(end)], [0 0], 'Color', 'Black')
-p = plot(t_x, x_x(3:4,:));
-grid on
-title('Position and Velocity')
-xlabel('Time [s]')
-ylabel('Position [m] / Velocity [m/s]')
-legend(p, 'Velocity', 'Position')
 
-subplot(2, 1, 2)
+subplot(2, 2, 1)
 hold on
 line([t_x(1) t_x(end)], [0 0], 'Color', 'Black')
-p = plot(t_x, x_x(1:2,:));
+p = plot(t_x, x_x(4,:));
 grid on
-title({''; 'Pitch and Pitch-Rate'})
+title('Position')
 xlabel('Time [s]')
-ylabel('Pitch [rad] / Pitch-Rate [rad/s]')
-legend(p, 'Pitch-Rate', 'Pitch')
+ylabel('Position [m]')
+legend(p, 'Position')
+
+subplot(2, 2, 3)
+hold on
+line([t_x(1) t_x(end)], [0 0], 'Color', 'Black')
+p = plot(t_x, x_x(3,:));
+grid on
+title('Velocity')
+xlabel('Time [s]')
+ylabel('Velocity [m/s]')
+legend(p, 'Velocity')
+
+subplot(2, 2, 2)
+hold on
+line([t_x(1) t_x(end)], [0 0], 'Color', 'Black')
+p = plot(t_x, x_x(2,:));
+grid on
+title({''; 'Pitch'})
+xlabel('Time [s]')
+ylabel('Pitch [rad]')
+legend(p, 'Pitch')
+
+subplot(2, 2, 4)
+hold on
+line([t_x(1) t_x(end)], [0 0], 'Color', 'Black')
+p = plot(t_x, x_x(1,:));
+grid on
+title({''; 'Pitch-Rate'})
+xlabel('Time [s]')
+ylabel('Pitch-Rate [rad/s]')
+legend(p, 'Pitch-Rate')

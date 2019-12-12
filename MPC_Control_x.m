@@ -48,13 +48,13 @@ classdef MPC_Control_x < MPC_Control
             m = [0.3; 0.3];
             
             % Compute LQR controller for unconstrained system
-            [K,Qf,~] = dlqr(mpc.A, mpc.B, Q, R);
+            [K,~,~] = dlqr(mpc.A, mpc.B, Q, R);
             % MATLAB defines K as -K, so invert its signal
             K = -K;
             
             % Compute maximal invariant set
             Xf = polytope([F;M*K],[f;m]);
-            Acl = [mpc.A+mpc.B*K];
+            Acl = mpc.A+mpc.B*K;
             while 1
                 prevXf = Xf;
                 [T,t] = double(Xf);
