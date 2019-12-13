@@ -20,13 +20,13 @@ mpc_yaw = MPC_Control_yaw(sys_yaw, Ts);
 %% Plot
 % Sys X
 figure
-
+suptitle('System X-Pitch, x0 = [0 0 0 2]')
 subplot(2, 2, 1)
 hold on
 line([t_x(1) t_x(end)], [0 0], 'Color', 'Black')
 p = plot(t_x, x_x(4,:));
 grid on
-title('Position')
+title({''; 'Position'})
 xlabel('Time [s]')
 ylabel('Position [m]')
 legend(p, 'Position')
@@ -36,7 +36,7 @@ hold on
 line([t_x(1) t_x(end)], [0 0], 'Color', 'Black')
 p = plot(t_x, x_x(3,:));
 grid on
-title('Velocity')
+title({''; 'Velocity'})
 xlabel('Time [s]')
 ylabel('Velocity [m/s]')
 legend(p, 'Velocity')
@@ -60,3 +60,49 @@ title({''; 'Pitch-Rate'})
 xlabel('Time [s]')
 ylabel('Pitch-Rate [rad/s]')
 legend(p, 'Pitch-Rate')
+
+% Sys z
+figure
+suptitle('System Z, x0 = [0 2]')
+subplot(2, 1, 1)
+hold on
+line([t_z(1) t_z(end)], [0 0], 'Color', 'Black')
+p = plot(t_z, x_z(2,:));
+grid on
+title({''; 'Position'})
+xlabel('Time [s]')
+ylabel('Position [m]')
+legend(p, 'Position')
+
+subplot(2, 1, 2)
+hold on
+line([t_z(1) t_z(end)], [0 0], 'Color', 'Black')
+p = plot(t_z, x_z(1,:));
+grid on
+title({''; 'Velocity'})
+xlabel('Time [s]')
+ylabel('Velocity [m/s]')
+legend(p, 'Velocity')
+
+% Sys yaw
+figure
+suptitle('System Yaw, x0 = [0 pi/4]')
+subplot(2, 1, 1)
+hold on
+line([t_yaw(1) t_yaw(end)], [0 0], 'Color', 'Black')
+p = plot(t_yaw, x_yaw(2,:));
+grid on
+title({''; 'Yaw'})
+xlabel('Time [s]')
+ylabel('Yaw [rad]')
+legend(p, 'Yaw')
+
+subplot(2, 1, 2)
+hold on
+line([t_yaw(1) t_yaw(end)], [0 0], 'Color', 'Black')
+p = plot(t_yaw, x_yaw(1,:));
+grid on
+title({''; 'Yaw-Rate'})
+xlabel('Time [s]')
+ylabel('Yaw-Rate [rad/s]')
+legend(p, 'Yaw-Rate')

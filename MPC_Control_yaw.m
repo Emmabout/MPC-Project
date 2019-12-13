@@ -38,8 +38,8 @@ classdef MPC_Control_yaw < MPC_Control
             obj = 0;
             
             % Tuning parameters
-            Q = 10 * eye(n);
-            R = eye(m);
+            Q = diag([10 100]);
+            R = 1;
             
             % Constraints
             M  = [1; -1];
