@@ -15,7 +15,7 @@ mpc_yaw = MPC_Control_yaw(sys_yaw, Ts);
 [x, t_x, x_x] = lsim_mpc(sys_x, mpc_x, [0 0 0 2], 10, Ts, 10);
 [y, t_y, x_y] = lsim_mpc(sys_y, mpc_y, [0 0 0 2], 10, Ts, 10);
 [z, t_z, x_z] = lsim_mpc(sys_z, mpc_z, [0 2], 10, Ts, 10);
-[yaw, t_yaw, x_yaw] = lsim_mpc(sys_yaw, mpc_yaw, [0 pi/4], 10, Ts, 10);
+[yaw, t_yaw, x_yaw] = lsim_mpc(sys_yaw, mpc_yaw, [0 0], pi/4, 10, Ts, 10);
 
 %% Plot
 % Sys X
@@ -83,6 +83,7 @@ title({''; 'Velocity'})
 xlabel('Time [s]')
 ylabel('Velocity [m/s]')
 legend(p, 'Velocity')
+
 
 % Sys yaw
 figure

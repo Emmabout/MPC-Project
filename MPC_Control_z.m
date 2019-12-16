@@ -60,11 +60,11 @@ classdef MPC_Control_z < MPC_Control
             m = [0.3; 0.2];
             
             for i = 1:N-1
-                con = con + (x(:,i+1) == mpc.A*x(:,i) + mpc.B*u(:,i));  % System dynamics
+                con = con + ((x(:,i+1) - xs) == mpc.A*(x(:,i) - xs) + mpc.B*(u(:,i) - us));  % System dynamics
                 con = [con, M*u(:,i)<= m];                       % Input constraints
-                obj = obj + x(:,i)'*Q*x(:,i) + u(:,i)'*R*u(:,i);    % Cost function
+                obj = obj + (x(:,i) - xs)'*Q*(x(:,i) - xs) + (u(:,i) - us)'*R*(u(:,i) - us);    % Cost function
             end
-            obj = obj + x(:,N)'*Q*x(:,N);
+            obj = obj + (x(:,N) - xs)'*Q*(x(:,N) - xs);
             
             % YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,7 +104,14 @@ classdef MPC_Control_z < MPC_Control
             con = [];
             obj = 0;
             
+            M  = [1; -1];
+            m = [0.3; 0.2];
             
+            con = con + (xs == mpc.A*xs + mpc.B*us); % System dynamics: x(k+1) = x(k)
+            con = con + (ref == mpc.C*xs + mpc.D*us); % Output = ref
+            con = [con, M*us <= m]; % Input constraints
+            
+            obj = obj + us^2; % Minimize input          
             % YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
