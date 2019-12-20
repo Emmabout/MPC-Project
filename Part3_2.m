@@ -14,10 +14,15 @@ mpc_z = MPC_Control_z(sys_z, Ts);
 mpc_yaw = MPC_Control_yaw(sys_yaw, Ts);
 
 %% Simulate the systems
-[x, t_x, x_x] = lsim_mpc_ref(sys_x, mpc_x, [0 0 0 0], -2, 10, Ts, 10);
-[y, t_y, x_y] = lsim_mpc_ref(sys_y, mpc_y, [0 0 0 0], -2, 10, Ts, 10);
-[z, t_z, x_z] = lsim_mpc_ref(sys_z, mpc_z, [0 0], -2, 10, Ts, 10);
-[yaw, t_yaw, x_yaw] = lsim_mpc_ref(sys_yaw, mpc_yaw, [0 0], -pi/4, 10, Ts, 10);
+x_ref = -2;
+y_ref = -2;
+z_ref = -2;
+yaw_ref = -pi/4;
+
+[x, t_x, x_x] = lsim_mpc_ref(sys_x, mpc_x, [0 0 0 0], x_ref, 10, Ts, 10);
+[y, t_y, x_y] = lsim_mpc_ref(sys_y, mpc_y, [0 0 0 0], y_ref, 10, Ts, 10);
+[z, t_z, x_z] = lsim_mpc_ref(sys_z, mpc_z, [0 0], z_ref, 10, Ts, 10);
+[yaw, t_yaw, x_yaw] = lsim_mpc_ref(sys_yaw, mpc_yaw, [0 0], yaw_ref, 10, Ts, 10);
 
 %% Plot
 % Sys X
@@ -25,7 +30,7 @@ figure
 % suptitle('System X-Pitch, x0 = [0 0 0 0]')
 subplot(2, 2, 1)
 hold on
-line([t_x(1) t_x(end)], [0 0], 'Color', 'Black')
+line([t_x(1) t_x(end)], [x_ref x_ref], 'Color', 'Magenta')
 p = plot(t_x, x_x(4,:));
 grid on
 title({''; 'Position'})
@@ -69,7 +74,7 @@ figure
 % suptitle('System X-Pitch, x0 = [0 0 0 0]')
 subplot(2, 2, 1)
 hold on
-line([t_y(1) t_y(end)], [0 0], 'Color', 'Black')
+line([t_y(1) t_y(end)], [y_ref y_ref], 'Color', 'Magenta')
 p = plot(t_y, x_y(4,:));
 grid on
 title({''; 'Position'})
@@ -113,7 +118,7 @@ figure
 % suptitle('System Z, x0 = [0 0]')
 subplot(2, 1, 1)
 hold on
-line([t_z(1) t_z(end)], [0 0], 'Color', 'Black')
+line([t_z(1) t_z(end)], [z_ref z_ref], 'Color', 'Magenta')
 p = plot(t_z, x_z(2,:));
 grid on
 title({''; 'Position'})
@@ -138,7 +143,7 @@ figure
 % suptitle('System Yaw, x0 = [0 0]')
 subplot(2, 1, 1)
 hold on
-line([t_yaw(1) t_yaw(end)], [0 0], 'Color', 'Black')
+line([t_yaw(1) t_yaw(end)], [yaw_ref yaw_ref], 'Color', 'Magenta')
 p = plot(t_yaw, x_yaw(2,:));
 grid on
 title({''; 'Yaw'})
