@@ -46,7 +46,7 @@ classdef MPC_Control_yaw < MPC_Control
             m = [0.2; 0.2];
             
             for i = 1:N-1
-                con = con + ((x(:,i+1) - xs) == mpc.A*(x(:,i) - xs) + mpc.B*(u(:,i) - us));  % System dynamics
+                con = con + (x(:,i+1) == mpc.A*x(:,i) + mpc.B*u(:,i));  % System dynamics
                 con = [con, M*u(:,i)<= m];                       % Input constraints
                 obj = obj + (x(:,i) - xs)'*Q*(x(:,i) - xs) + (u(:,i) - us)'*R*(u(:,i) - us);    % Cost function
             end

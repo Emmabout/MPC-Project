@@ -60,7 +60,7 @@ classdef MPC_Control_z < MPC_Control
             m = [0.3; 0.2];
             
             for i = 1:N-1
-                con = con + ((x(:,i+1) - xs) == mpc.A*(x(:,i) - xs) + mpc.B*(u(:,i) - us));  % System dynamics
+                con = con + (x(:,i+1) == mpc.A*x(:,i) + mpc.B*u(:,i));  % System dynamics
                 con = [con, M*u(:,i)<= m];                       % Input constraints
                 obj = obj + (x(:,i) - xs)'*Q*(x(:,i) - xs) + (u(:,i) - us)'*R*(u(:,i) - us);    % Cost function
             end
@@ -108,7 +108,7 @@ classdef MPC_Control_z < MPC_Control
             m = [0.3; 0.2];
             
             con = con + (xs == mpc.A*xs + mpc.B*us); % System dynamics: x(k+1) = x(k)
-            con = con + (ref == mpc.C*xs + mpc.D*us); % Output = ref
+            con = con + (ref == mpc.C*xs + mpc.D*us + d_est); % Output = ref
             con = [con, M*us <= m]; % Input constraints
             
             obj = obj + us^2; % Minimize input          
@@ -133,10 +133,11 @@ classdef MPC_Control_z < MPC_Control
             % YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE
             % You can use the matrices mpc.A, mpc.B, mpc.C and mpc.D
             
-            A_bar = [];
-            B_bar = [];
-            C_bar = [];
-            L = [];
+            A_bar = [mpc.A mpc.B; 0 0 1];
+            B_bar = [mpc.B; 0];
+            C_bar = [mpc.C 1];
+            L = place(A_bar', -C_bar', [0.5 0.6 0.7]);
+            L = L';
             
             % YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

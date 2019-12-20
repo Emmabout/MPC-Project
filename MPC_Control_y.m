@@ -67,7 +67,7 @@ classdef MPC_Control_y < MPC_Control
             [Ff,ff] = double(Xf);
             
             for i = 1:N-1
-                con = con + ((x(:,i+1) - xs) == mpc.A*(x(:,i) - xs) + mpc.B*(u(:,i) - us));  % System dynamics
+                con = con + (x(:,i+1) == mpc.A*x(:,i) + mpc.B*u(:,i));  % System dynamics
                 con = [con, M*u(:,i)<= m];                       % Input constraints
                 con = [con, F*x(:,i)<= f];                       % State constraints
                 obj = obj + (x(:,i) - xs)'*Q*(x(:,i) - xs) + (u(:,i) - us)'*R*(u(:,i) - us);    % Cost function
