@@ -34,7 +34,7 @@ classdef MPC_Control_z < MPC_Control
             d_est = sdpvar(1);
             
             % SET THE HORIZON HERE
-            N = 10;
+            N = 30;
             
             % Predicted state and input trajectories
             x = sdpvar(n, N);
@@ -60,7 +60,7 @@ classdef MPC_Control_z < MPC_Control
             m = [0.3; 0.2];
             
             for i = 1:N-1
-                con = con + (x(:,i+1) == mpc.A*x(:,i) + mpc.B*u(:,i));  % System dynamics
+                con = con + (x(:,i+1) == mpc.A*x(:,i) + mpc.B*u(:,i) + mpc.B*d_est) ;  % System dynamics
                 con = [con, M*u(:,i)<= m];                       % Input constraints
                 obj = obj + (x(:,i) - xs)'*Q*(x(:,i) - xs) + (u(:,i) - us)'*R*(u(:,i) - us);    % Cost function
             end
@@ -107,7 +107,7 @@ classdef MPC_Control_z < MPC_Control
             M  = [1; -1];
             m = [0.3; 0.2];
             
-            con = con + (xs == mpc.A*xs + mpc.B*us); % System dynamics: x(k+1) = x(k)
+            con = con + (xs == mpc.A*xs + mpc.B*us + mpc.B*d_est); % System dynamics: x(k+1) = x(k)
             con = con + (ref == mpc.C*xs + mpc.D*us + d_est); % Output = ref
             con = [con, M*us <= m]; % Input constraints
             
@@ -136,7 +136,7 @@ classdef MPC_Control_z < MPC_Control
             A_bar = [mpc.A mpc.B; 0 0 1];
             B_bar = [mpc.B; 0];
             C_bar = [mpc.C 1];
-            L = place(A_bar', -C_bar', [0.5 0.6 0.7]);
+            L = -place(A_bar', C_bar', [0.2 0.3 0.4]);
             L = L';
             
             % YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE
