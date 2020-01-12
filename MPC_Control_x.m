@@ -79,7 +79,8 @@ classdef MPC_Control_x < MPC_Control
                 obj = obj + (x(:,i) - xs)'*Q*(x(:,i) - xs) + (u(:,i) - us)'*R*(u(:,i) - us);    % Cost function
             end
             con = con + (Ff*(x(:,N) - xs) <= ff);
-            obj = obj + (x(:,N) - xs)'*Q*(x(:,N) - xs);
+            P = dlyap(Acl, Q);
+            obj = obj + (x(:,N) - xs)'*P*(x(:,N) - xs);
             
             % YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE YOUR CODE HERE
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
