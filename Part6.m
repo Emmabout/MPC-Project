@@ -15,32 +15,24 @@ REF = opti.parameter(4,1); % reference position [x,y,z,yaw]
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%% YOUR CODE HERE %%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-
+% Tuning parameters
 Q = diag([10 10 10, 10 10 100, 10 10 10, 100 100 100]);
 R = eye(4);
 
+% Reference state and command
 XS = [0 0 0, 0 0 REF(4), 0 0 0, REF(1:3)']';
 [~, US] = quad.trim();
 
 % Initial conditions
 opti.subject_to(X(:,1) == X0);
 
-% opti.minimize((X(6,:) - REF(4))*(X(6,:) - REF(4))' + ...
-%     10000*(X(10,:) - REF(1))*(X(10,:) - REF(1))' + ...
-%     10000*(X(11,:) - REF(2))*(X(11,:) - REF(2))' + ...
-%     10000*(X(12,:) - REF(3))*(X(12,:) - REF(3))')% + ...
-%     (U(1,:) - US(1))*(U(1,:) - US(1))' + ...
-%     (U(2,:) - US(2))*(U(2,:) - US(2))' + ...
-% 	(U(3,:) - US(3))*(U(3,:) - US(3))' + ...
-% 	(U(4,:) - US(4))*(U(4,:) - US(4))')
-obj_fun = 0;
-
+obj_fun = 0; % Objective function
 for k=1:N % loop over control intervals
     opti.subject_to(X(:,k+1) == X(:,k) + quad.Ts*quad.f(X(:,k), U(:,k))); % System dynamics
-    obj_fun = obj_fun + (X(:,k) - XS)'*Q*(X(:,k) - XS) + (U(:,k) - US)'*R*(U(:,k) - US); % Objective function
+    obj_fun = obj_fun + (X(:,k) - XS)'*Q*(X(:,k) - XS) + (U(:,k) - US)'*R*(U(:,k) - US); % State and command cost
 end
 
-opti.subject_to(0 <= U <= 1.5)
+opti.subject_to(0 <= U <= 1.5) % Input constraints
 opti.minimize(obj_fun)
 
 ctrl = @(x,ref) eval_ctrl(x, ref, opti, X0, REF, X, U);
